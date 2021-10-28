@@ -1,20 +1,33 @@
 package com.josafhathz.app.ws.ui.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.josafhathz.app.ws.model.request.UpdateUserRequestModel;
+import com.josafhathz.app.ws.model.request.UserDetailRequestModel;
 import com.josafhathz.app.ws.ui.model.response.UserRest;
 
 @RestController
 @RequestMapping("users")
 public class UserController {
+	
+	Map<String, UserRest> users;
 	
 	@GetMapping
 	public String getUsers(
@@ -27,25 +40,56 @@ public class UserController {
 	
 	@GetMapping("/{userId}")
 	public ResponseEntity<UserRest> getUser(@PathVariable String userId) {
-		UserRest returnValue = new UserRest();
-		returnValue.setEmail("asdasd@asdasd.com");
-		returnValue.setFirstName("oa");
-		returnValue.setLastName("ao");
-		return new ResponseEntity<UserRest>(returnValue,HttpStatus.OK);
+		
+		if (users.containsKey(userId)) {
+			return new ResponseEntity<UserRest>(users.get(userId), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<UserRest>(HttpStatus.NOT_FOUND);
+		}
 		
 	}
 	
 	@PostMapping
-	public String createUser() {
-		return "Create was called!";
+	public ResponseEntity<UserRest> createUser(@Validated @RequestBody UserDetailRequestModel user) {
+		
+		UserRest returnValue = new UserRest();
+		returnValue.setEmail(user.getEmail());
+		returnValue.setFirstName(user.getFirstName());
+		returnValue.setLastName(user.getLastName());
+		String userId = UUID.randomUUID().toString();
+		returnValue.setUserId(userId);
+		if (users == null) {
+			users = new HashMap<>();
+		}
+		
+		users.put(returnValue.getUserId(), returnValue);
+		
+		return new ResponseEntity<UserRest> (
+				returnValue, HttpStatus.CREATED);
 	}
 	
-	@PutMapping
-	public String updateUser() {
-		return "Update user was called";
+	@PutMapping("/{userId}")
+	public ResponseEntity<UserRest> updateUser(@PathVariable(name = "userId") String userId,
+			@RequestBody UpdateUserRequestModel user ) {
+		if (users.containsKey(userId)) {
+			UserRest updatedUser = users.get(userId);
+			updatedUser.setFirstName(user.getFirstName());
+			updatedUser.setLastName(user.getLastName());
+			users.put(userId, updatedUser);
+			return new ResponseEntity<UserRest>(updatedUser, HttpStatus.CREATED);
+		} else {
+			return new ResponseEntity<UserRest>(HttpStatus.NOT_FOUND);
+		}
+		
 	}
 	
-	public String deleteUser() {
-		return "Delete was called";
+	@DeleteMapping("/{userId}")
+	public ResponseEntity<Void> deleteUser(@PathVariable(name = "userId") String userId) {
+		if (users.containsKey(userId)) {
+			users.remove(userId);
+			return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+		} else {
+			return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+		}
 	}
 }
