@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.josafhathz.app.ws.exceptions.UserServiceException;
 import com.josafhathz.app.ws.model.request.UpdateUserRequestModel;
 import com.josafhathz.app.ws.model.request.UserDetailRequestModel;
 import com.josafhathz.app.ws.ui.model.response.UserRest;
@@ -40,6 +41,10 @@ public class UserController {
 	
 	@GetMapping("/{userId}")
 	public ResponseEntity<UserRest> getUser(@PathVariable String userId) {
+		
+		if(true) {
+			throw new UserServiceException("A user service exception is thrown");
+		}
 		
 		if (users.containsKey(userId)) {
 			return new ResponseEntity<UserRest>(users.get(userId), HttpStatus.OK);
