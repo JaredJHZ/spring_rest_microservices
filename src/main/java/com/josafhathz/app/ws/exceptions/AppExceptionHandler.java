@@ -28,28 +28,23 @@ public class AppExceptionHandler {
 		
 	}
 	
-	@ExceptionHandler(value = {NullPointerException.class})
-	public ResponseEntity<Object> hanleNullPointerException(NullPointerException ex, WebRequest request) {
+	@ExceptionHandler(value = {NullPointerException.class, UserServiceException.class})
+	public ResponseEntity<Object> handleSpecificExceptions(Exception ex, WebRequest request) {
 		
-		String errorMessageDesc = "Null pointer";
+		String errorMessageDesc = "Null pointer Exception";
+		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		
-		ErrorMessage errorMessage = new ErrorMessage(new Date() , errorMessageDesc);
+		boolean isUserException = ex instanceof UserServiceException;
 		
-		return new ResponseEntity<>(
-				errorMessage, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
-		
-		
-	}
-	
-	@ExceptionHandler(value = {UserServiceException.class})
-	public ResponseEntity<Object> userServiceException(UserServiceException ex, WebRequest request) {
-		
-		String errorMessageDesc = ex.getLocalizedMessage();
+		if (isUserException) {
+			errorMessageDesc = "User service exception";
+			status = HttpStatus.NOT_FOUND;
+		}
 		
 		ErrorMessage errorMessage = new ErrorMessage(new Date() , errorMessageDesc);
 		
 		return new ResponseEntity<>(
-				errorMessage, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+				errorMessage, new HttpHeaders(), status);
 		
 		
 	}
